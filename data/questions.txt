@@ -1,0 +1,32 @@
+Java is ___ language|Compiled,Interpreted,Both,None|2|1
+Which symbol ends a statement?|.,;,:,}|1|1
+Size of int in Java?|2 bytes,4 bytes,8 bytes,Depends|1|1
+Default value of boolean?|true,false,0,null|1|1
+Which keyword creates object?|create,new,make,class|1|1
+Entry point of Java program?|start(),main(),run(),init()|1|1
+Which is not primitive?|int,float,String,char|2|1
+Print method?|System.print,Console.log,System.out.println,echo|2|1
+Java file extension?|.js,.java,.class,.txt|1|1
+Operator for addition?|+,-,*,/|0|1
+
+Inheritance keyword?|this,super,extends,implements|2|2
+Which is interface keyword?|class,interface,abstract,implements|1|2
+Collection without duplicates?|List,Set,Map,Array|1|2
+Method overloading is ___ polymorphism|Compile-time,Run-time,Dynamic,Static|0|2
+Thread class method to start?|run(),start(),execute(),init()|1|2
+Which is unchecked exception?|IOException,SQLException,NullPointerException,FileNotFound|2|2
+JVM stands for?|Java Variable Machine,Java Virtual Machine,Joint VM,None|1|2
+Which collection is synchronized?|ArrayList,Vector,HashSet,TreeSet|1|2
+Keyword for abstraction?|abstract,interface,extends,final|0|2
+Which map allows null key?|HashMap,Hashtable,TreeMap,LinkedHashMap|0|2
+
+Time complexity of HashMap get() average?|O(1),O(n),O(log n),O(n log n)|0|3
+Garbage collection happens in?|Heap,Stack,Method Area,Register|0|3
+Which is marker interface?|Serializable,Runnable,Comparable,CloneableThread|0|3
+Functional interface annotation?|@FunctionalInterface,@Override,@Lambda,@Func|0|3
+Stream API introduced in?|Java 5,Java 7,Java 8,Java 11|2|3
+Concurrent collection?|ArrayList,CopyOnWriteArrayList,Vector,LinkedList|1|3
+Which sorting is stable?|QuickSort,HeapSort,MergeSort,SelectionSort|2|3
+JIT compiler does?|Interpret,Compile bytecode,Optimize runtime,Debug|2|3
+Lambda expressions implement?|Class,Functional Interface,Abstract Class,Thread|1|3
+Optional class introduced in?|Java 6,Java 7,Java 8,Java 9|2|3
