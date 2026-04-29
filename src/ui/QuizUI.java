@@ -26,7 +26,6 @@ public class QuizUI {
 
     int score = 0;
 
-    // 🔥 Adaptive system
     double skill = 1.0;
     int level = 1;
 
@@ -89,7 +88,6 @@ public class QuizUI {
         frame.setVisible(true);
     }
 
-    // 🔥 LEVEL LOGIC
     public void updateLevel() {
         if (skill < 1.5) level = 1;
         else if (skill < 2.3) level = 2;
@@ -170,7 +168,6 @@ public class QuizUI {
 
         frame.add(topPanel, BorderLayout.NORTH);
 
-        // CENTER
         JPanel centerWrapper = new JPanel(new GridBagLayout());
         centerWrapper.setBackground(bgMain);
 
@@ -185,13 +182,12 @@ public class QuizUI {
         questionLabel.setFont(new Font("Segoe UI", Font.BOLD, 36));
         questionLabel.setForeground(dark);
         questionLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        questionLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
         feedbackLabel = new JLabel(" ");
         feedbackLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
         feedbackLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         feedbackLabel.setHorizontalAlignment(SwingConstants.CENTER);
-
-        questionLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
         centerPanel.add(questionLabel);
         centerPanel.add(Box.createVerticalStrut(10));
@@ -200,7 +196,6 @@ public class QuizUI {
         centerWrapper.add(centerPanel);
         frame.add(centerWrapper, BorderLayout.CENTER);
 
-        // OPTIONS
         JPanel optionsPanel = new JPanel(new GridLayout(2, 2, 30, 30));
 
         String[] options = q.getOptions();
@@ -248,11 +243,22 @@ public class QuizUI {
                 int prev = level;
                 updateLevel();
 
+                // Level Up
                 if (level > prev) {
-                    if (level == 2)
-                        showTemporaryMessage("🚀 Moved to INTERMEDIATE", dark);
-                    else if (level == 3)
-                        showTemporaryMessage("🔥 Moved to EXPERT", dark);
+                    if (level == 2) {
+                        showTemporaryMessage("Moved to INTERMEDIATE", dark);
+                    } else if (level == 3) {
+                        showTemporaryMessage("Moved to EXPERT", dark);
+                    }
+                }
+
+                // Level Down
+                else if (level < prev) {
+                    if (level == 2) {
+                        showTemporaryMessage("Dropped to INTERMEDIATE", wrongColor);
+                    } else if (level == 1) {
+                        showTemporaryMessage("Dropped to BEGINNER", wrongColor);
+                    }
                 }
 
                 Timer t = new Timer(900, ev -> {
@@ -292,7 +298,20 @@ public class QuizUI {
                 wrongAnswers++;
                 skill -= 0.05;
 
-                showTemporaryMessage("Time's up!", wrongColor);
+                skill = Math.max(0.5, skill);
+
+                int prev = level;
+                updateLevel();
+
+                if (level < prev) {
+                    if (level == 2) {
+                        showTemporaryMessage("Dropped to INTERMEDIATE", wrongColor);
+                    } else if (level == 1) {
+                        showTemporaryMessage("Dropped to BEGINNER", wrongColor);
+                    }
+                } else {
+                    showTemporaryMessage("Time's up!", wrongColor);
+                }
 
                 Timer t = new Timer(900, ev -> {
                     ((Timer) ev.getSource()).stop();
@@ -347,7 +366,6 @@ public class QuizUI {
                 + "</div></html>");
 
         feedback.setHorizontalAlignment(SwingConstants.CENTER);
-
         feedback.setFont(new Font("Segoe UI", Font.PLAIN, 22));
         feedback.setForeground(dark);
         feedback.setAlignmentX(Component.CENTER_ALIGNMENT);

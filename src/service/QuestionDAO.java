@@ -17,23 +17,22 @@ public class QuestionDAO {
 
     private Connection con;
 
-    public QuestionDAO() {
+    public QuestionDAO(){
         this.con = DBConnection.getConnection();
     }
 
-    // GET QUESTIONS BY DIFFICULTY (JDBC VERSION)
     public List<Question> getQuestionsByDifficulty(int difficulty) {
 
         List<Question> questions = new ArrayList<>();
 
         try {
             String sql = "SELECT * FROM questions WHERE difficulty = ?";
-            PreparedStatement ps = con.prepareStatement(sql);
+            PreparedStatement ps = con.prepareStatement(sql) ;
             ps.setInt(1, difficulty);
 
-            ResultSet rs = ps.executeQuery();
+            ResultSet rs = ps.executeQuery() ;
 
-            while (rs.next()) {
+            while (rs.next()){
 
                 Question q = new Question(
                         rs.getInt("id"),
@@ -49,32 +48,31 @@ public class QuestionDAO {
                 questions.add(q);
             }
 
-        } catch (Exception e) {
+        } catch (Exception e){
             e.printStackTrace();
         }
 
         return questions;
     }
 
-    // OPTIONAL: ADD QUESTION (future admin feature)
-    public void addQuestion(Question q) {
+    public void addQuestion(Question q){
 
         try {
             String sql = "INSERT INTO questions (question, option1, option2, option3, option4, correct_answer, difficulty) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
             PreparedStatement ps = con.prepareStatement(sql);
 
-            ps.setString(1, q.getQuestionText());
+            ps.setString(1, q.getQuestionText()) ;
             ps.setString(2, q.getOption1());
             ps.setString(3, q.getOption2());
             ps.setString(4, q.getOption3());
             ps.setString(5, q.getOption4());
-            ps.setInt(6, q.getCorrectAnswerIndex());
-            ps.setInt(7, q.getDifficulty());
+            ps.setInt(6, q.getCorrectAnswerIndex()) ;
+            ps.setInt(7, q.getDifficulty()) ;
 
-            ps.executeUpdate();
+            ps.executeUpdate() ;
 
-        } catch (Exception e) {
+        } catch (Exception e){
             e.printStackTrace();
         }
     }
