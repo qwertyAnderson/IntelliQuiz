@@ -1,7 +1,7 @@
 package ui;
 
 import javax.swing.*;
-import service.QuestionBank;
+import service.QuestionDAO;
 import model.Question;
 
 import java.awt.*;
@@ -12,7 +12,7 @@ public class QuizUI {
 
     JFrame frame;
 
-    QuestionBank qb = new QuestionBank();
+    QuestionDAO qb = new QuestionDAO();
 
     List<Question> beginner;
     List<Question> intermediate;
@@ -26,10 +26,9 @@ public class QuizUI {
 
     int score = 0;
 
+    // 🔥 Adaptive system
+    double skill = 1.0;
     int level = 1;
-    int streak = 0;
-    int levelScore = 0;
-    int levelQuestions = 0;
 
     int correctAnswers = 0;
     int wrongAnswers = 0;
@@ -44,12 +43,10 @@ public class QuizUI {
 
     JLabel feedbackLabel;
 
-    // COLOR PALETTE
     Color bgMain = new Color(245, 240, 255);
     Color bgCard = new Color(230, 220, 255);
     Color primary = new Color(120, 90, 200);
     Color dark = new Color(70, 50, 140);
-    Color accent = new Color(170, 140, 255);
     Color correctColor = new Color(80, 180, 120);
     Color wrongColor = new Color(200, 80, 100);
 
@@ -74,7 +71,6 @@ public class QuizUI {
         JButton startBtn = new JButton("Start Quiz");
         startBtn.setFont(new Font("Arial", Font.BOLD, 24));
         styleButton(startBtn);
-
         startBtn.setPreferredSize(new Dimension(220, 70));
 
         centerPanel.add(startBtn);
@@ -91,6 +87,13 @@ public class QuizUI {
         startBtn.addActionListener(e -> showQuestion(getNextQuestion()));
 
         frame.setVisible(true);
+    }
+
+    // 🔥 LEVEL LOGIC
+    public void updateLevel() {
+        if (skill < 1.5) level = 1;
+        else if (skill < 2.3) level = 2;
+        else level = 3;
     }
 
     public Question getNextQuestion() {
@@ -120,6 +123,15 @@ public class QuizUI {
         }
     }
 
+    public void showTemporaryMessage(String msg, Color color) {
+        feedbackLabel.setForeground(color);
+        feedbackLabel.setText(msg);
+
+        Timer t = new Timer(900, e -> feedbackLabel.setText(" "));
+        t.setRepeats(false);
+        t.start();
+    }
+
     public void showQuestion(Question q) {
 
         if (timer != null) timer.stop();
@@ -128,10 +140,8 @@ public class QuizUI {
         frame.setLayout(new BorderLayout());
         frame.getContentPane().setBackground(bgMain);
 
-        // 🔝 TOP PANEL
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBackground(bgCard);
-        topPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
 
         JLabel levelLabel = new JLabel("Level: " + level + " | Score: " + score);
         levelLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
@@ -143,9 +153,7 @@ public class QuizUI {
 
         JButton exitBtn = new JButton("Exit");
         exitBtn.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        exitBtn.setFocusPainted(false);
 
-        // stop timer and show result
         exitBtn.addActionListener(e -> {
             if (timer != null) timer.stop();
             showResult();
@@ -162,7 +170,7 @@ public class QuizUI {
 
         frame.add(topPanel, BorderLayout.NORTH);
 
-        //center
+        // CENTER
         JPanel centerWrapper = new JPanel(new GridBagLayout());
         centerWrapper.setBackground(bgMain);
 
@@ -171,8 +179,9 @@ public class QuizUI {
         centerPanel.setBackground(bgMain);
 
         JLabel questionLabel = new JLabel(
-                "<html><div style='text-align:center; width:900px;'>" + q.getQuestionText() + "</div></html>"
+                "<html><div style='text-align:center; width:100%;'>" + q.getQuestionText() + "</div></html>"
         );
+
         questionLabel.setFont(new Font("Segoe UI", Font.BOLD, 36));
         questionLabel.setForeground(dark);
         questionLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -180,19 +189,19 @@ public class QuizUI {
         feedbackLabel = new JLabel(" ");
         feedbackLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
         feedbackLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        feedbackLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
-        centerPanel.add(Box.createVerticalStrut(40));
+        questionLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
         centerPanel.add(questionLabel);
-        centerPanel.add(Box.createVerticalStrut(25));
+        centerPanel.add(Box.createVerticalStrut(10));
         centerPanel.add(feedbackLabel);
 
         centerWrapper.add(centerPanel);
         frame.add(centerWrapper, BorderLayout.CENTER);
 
-        //  OPTIONS
+        // OPTIONS
         JPanel optionsPanel = new JPanel(new GridLayout(2, 2, 30, 30));
-        optionsPanel.setBorder(BorderFactory.createEmptyBorder(40, 100, 60, 100));
-        optionsPanel.setBackground(bgMain);
 
         String[] options = q.getOptions();
 
@@ -202,71 +211,57 @@ public class QuizUI {
 
             JButton btn = new JButton(options[i]);
             styleButton(btn);
-            btn.setFont(new Font("Segoe UI", Font.BOLD, 22));
-            btn.setPreferredSize(new Dimension(300, 80));
+            btn.setPreferredSize(new Dimension(650, 90));
+            btn.setFont(new Font("Segoe UI", Font.BOLD, 26));
 
             btn.addActionListener(e -> {
+
                 if (level == 1) beginnerTotal++;
                 else if (level == 2) intermediateTotal++;
                 else expertTotal++;
-                timer.stop();
 
-                if (selectedIndex == q.getCorrectAnswerIndex()) {
+                if (timer != null) timer.stop();
+
+                boolean isCorrect = (selectedIndex == q.getCorrectAnswerIndex() - 1);
+
+                if (isCorrect) {
 
                     score++;
-                    streak++;
-                    levelScore++;
                     correctAnswers++;
 
                     if (level == 1) beginnerCorrect++;
                     else if (level == 2) intermediateCorrect++;
                     else expertCorrect++;
 
-                    feedbackLabel.setForeground(correctColor);
-                    feedbackLabel.setText(" Correct!");
+                    skill += 0.10;
+                    showTemporaryMessage("Correct!", correctColor);
 
                 } else {
-                    streak = 0;
+
                     wrongAnswers++;
-
-                    feedbackLabel.setForeground(wrongColor);
-                    feedbackLabel.setText(" Wrong!");
+                    skill -= 0.07;
+                    showTemporaryMessage("Wrong!", wrongColor);
                 }
 
-                levelQuestions++;
+                skill = Math.max(0.5, Math.min(3.0, skill));
 
-                if (level == 1 && streak >= 5) {
-                    level = 2;
-                    resetStats();
-                    feedbackLabel.setText(" Moved to INTERMEDIATE");
+                int prev = level;
+                updateLevel();
+
+                if (level > prev) {
+                    if (level == 2)
+                        showTemporaryMessage("🚀 Moved to INTERMEDIATE", dark);
+                    else if (level == 3)
+                        showTemporaryMessage("🔥 Moved to EXPERT", dark);
                 }
 
-                else if (level == 2 && levelQuestions >= 10) {
-
-                    if (levelScore <= 2) {
-                        level = 1;
-                        feedbackLabel.setText(" Dropped to BEGINNER");
-                    }
-                    else if (streak >= 5) {
-                        level = 3;
-                        feedbackLabel.setText(" Moved to EXPERT");
-                    }
-                    else {
-                        feedbackLabel.setText(" Stay in INTERMEDIATE");
-                    }
-
-                    resetStats();
-                }
-
-                else if (level == 3 && levelQuestions >= 5) {
-                    showResult();
-                    return;
-                }
-
-                new Timer(1000, ev -> {
+                Timer t = new Timer(900, ev -> {
                     ((Timer) ev.getSource()).stop();
                     showQuestion(getNextQuestion());
-                }).start();
+                });
+
+                t.setRepeats(false);
+                t.start();
             });
 
             optionsPanel.add(btn);
@@ -284,29 +279,28 @@ public class QuizUI {
 
         timeLeft = 10;
 
+        if (timer != null) timer.stop();
+
         timer = new Timer(1000, e -> {
 
             timeLeft--;
             timerLabel.setText("Time Left: " + timeLeft);
 
             if (timeLeft <= 0) {
+
                 timer.stop();
-
                 wrongAnswers++;
-                streak = 0;
-                levelQuestions++;
+                skill -= 0.05;
 
-                if (level == 1) beginnerTotal++;
-                else if (level == 2) intermediateTotal++;
-                else expertTotal++;
+                showTemporaryMessage("Time's up!", wrongColor);
 
-                feedbackLabel.setForeground(dark);
-                feedbackLabel.setText(" Time's up!");
-
-                new Timer(1000, ev -> {
+                Timer t = new Timer(900, ev -> {
                     ((Timer) ev.getSource()).stop();
                     showQuestion(getNextQuestion());
-                }).start();
+                });
+
+                t.setRepeats(false);
+                t.start();
             }
         });
 
@@ -322,89 +316,75 @@ public class QuizUI {
         JLabel title = new JLabel("Quiz Completed!", SwingConstants.CENTER);
         title.setFont(new Font("Segoe UI", Font.BOLD, 42));
         title.setForeground(dark);
-
-        JTextArea resultArea = new JTextArea();
-        resultArea.setFont(new Font("Segoe UI", Font.PLAIN, 22));
-        resultArea.setEditable(false);
-        resultArea.setBackground(bgCard);
-        resultArea.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
-
-        double bAcc = calculateAccuracy(beginnerCorrect, beginnerTotal);
-        double iAcc = calculateAccuracy(intermediateCorrect, intermediateTotal);
-        double eAcc = calculateAccuracy(expertCorrect, expertTotal);
-
-        String feedback = "";
-
-        if (bAcc < 50) feedback += "• Improve your basics.\n";
-        else if (bAcc < 75) feedback += "• Decent basics.\n";
-        else feedback += "• Strong basics.\n";
-
-        if (iAcc < 50) feedback += "• Work on core concepts.\n";
-        else if (iAcc < 75) feedback += "• Good understanding.\n";
-        else feedback += "• Strong intermediate level.\n";
-
-        if (eAcc < 50) feedback += "• Practice advanced topics.\n";
-        else if (eAcc < 75) feedback += "• Nearly expert.\n";
-        else feedback += "• Excellent expert performance!\n";
-
-        resultArea.setText(
-                " QUIZ REPORT \n\n" +
-                        "Score: " + score + "\n\n" +
-
-                        "Correct: " + correctAnswers + "\n" +
-                        "Wrong: " + wrongAnswers + "\n\n" +
-
-                        "Beginner: " + beginnerCorrect + "/" + beginnerTotal +
-                        " (" + String.format("%.1f", bAcc) + "%)\n" +
-
-                        "Intermediate: " + intermediateCorrect + "/" + intermediateTotal +
-                        " (" + String.format("%.1f", iAcc) + "%)\n" +
-
-                        "Expert: " + expertCorrect + "/" + expertTotal +
-                        " (" + String.format("%.1f", eAcc) + "%)\n\n" +
-
-                        "Feedback:\n" + feedback
-        );
-
-        JButton exitBtn = new JButton("Exit");
-        styleButton(exitBtn);
-        exitBtn.addActionListener(e -> System.exit(0));
+        title.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
 
         frame.add(title, BorderLayout.NORTH);
-        frame.add(resultArea, BorderLayout.CENTER);
-        frame.add(exitBtn, BorderLayout.SOUTH);
+
+        JPanel reportPanel = new JPanel();
+        reportPanel.setLayout(new BoxLayout(reportPanel, BoxLayout.Y_AXIS));
+        reportPanel.setBackground(bgMain);
+
+        double bAcc = beginnerTotal == 0 ? 0 : (beginnerCorrect * 100.0 / beginnerTotal);
+        double iAcc = intermediateTotal == 0 ? 0 : (intermediateCorrect * 100.0 / intermediateTotal);
+        double eAcc = expertTotal == 0 ? 0 : (expertCorrect * 100.0 / expertTotal);
+
+        JLabel scoreLabel = new JLabel("Final Score: " + score);
+        JLabel skillLabel = new JLabel("Final Skill: " + String.format("%.2f", skill) + " / 3.00");
+
+        JLabel bLabel = new JLabel("Beginner Accuracy: " + String.format("%.1f", bAcc) + "%");
+        JLabel iLabel = new JLabel("Intermediate Accuracy: " + String.format("%.1f", iAcc) + "%");
+        JLabel eLabel = new JLabel("Expert Accuracy: " + String.format("%.1f", eAcc) + "%");
+
+        JLabel feedbackTitle = new JLabel("Learning Feedback:");
+        feedbackTitle.setFont(new Font("Segoe UI", Font.BOLD, 26));
+        feedbackTitle.setForeground(dark);
+        feedbackTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel feedback = new JLabel("<html><div style='text-align:center;'>"
+                + (bAcc < 50 ? "• Improve basics<br>" : "• Strong basics<br>")
+                + (iAcc < 50 ? "• Work on intermediate concepts<br>" : "• Good intermediate level<br>")
+                + (eAcc < 50 ? "• Practice advanced topics<br>" : "• Excellent expert performance<br>")
+                + "</div></html>");
+
+        feedback.setHorizontalAlignment(SwingConstants.CENTER);
+
+        feedback.setFont(new Font("Segoe UI", Font.PLAIN, 22));
+        feedback.setForeground(dark);
+        feedback.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel[] labels = {scoreLabel, skillLabel, bLabel, iLabel, eLabel};
+
+        for (JLabel l : labels) {
+            l.setFont(new Font("Segoe UI", Font.BOLD, 24));
+            l.setForeground(dark);
+            l.setAlignmentX(Component.CENTER_ALIGNMENT);
+        }
+
+        reportPanel.add(Box.createVerticalStrut(20));
+        reportPanel.add(scoreLabel);
+        reportPanel.add(Box.createVerticalStrut(10));
+        reportPanel.add(skillLabel);
+
+        reportPanel.add(Box.createVerticalStrut(20));
+        reportPanel.add(bLabel);
+        reportPanel.add(iLabel);
+        reportPanel.add(eLabel);
+
+        reportPanel.add(Box.createVerticalStrut(25));
+        reportPanel.add(feedbackTitle);
+        reportPanel.add(Box.createVerticalStrut(10));
+        reportPanel.add(feedback);
+
+        frame.add(reportPanel, BorderLayout.CENTER);
 
         frame.revalidate();
         frame.repaint();
     }
 
-    public void resetStats() {
-        levelQuestions = 0;
-        levelScore = 0;
-        streak = 0;
-    }
-
-    public double calculateAccuracy(int correct, int total) {
-        if (total == 0) return 0;
-        return (correct * 100.0) / total;
-    }
-
-    // Button Styling
     public void styleButton(JButton btn) {
         btn.setBackground(primary);
         btn.setForeground(Color.WHITE);
         btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        btn.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                btn.setBackground(accent);
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                btn.setBackground(primary);
-            }
-        });
     }
 
     public static void main(String[] args) {
